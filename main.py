@@ -25,7 +25,7 @@ st.title('Titanic Survival Prediction')
 
 # Display dataset
 st.subheader('Test Data Preview')
-st.write(test_data.head())
+st.write(test_data.head())  # This line shows only the first 5 rows for preview
 
 # Allow users to select which features to include
 st.sidebar.header('Feature Selection')
@@ -67,15 +67,24 @@ else:
     predictions = model.predict(X)
     predictions = [1 if pred > 0.5 else 0 for pred in predictions]
 
-    # Display the updated prediction results
-    st.subheader('Prediction Results Based on Selected Features')
-    prediction_df = pd.DataFrame({'Name': test_data['Name'], 'Survived': predictions})
-    st.write(prediction_df.head())
+    # Ensure 'PassengerId' is used in the submission
+    if 'PassengerId' not in test_data.columns:
+        st.error("Error: Test data must contain 'PassengerId' column to generate submission.")
+    else:
+        # Create the submission DataFrame with 'PassengerId' and 'Survived' columns
+        submission = pd.DataFrame({
+            'PassengerId': test_data['PassengerId'],  # Ensure we use PassengerId
+            'Survived': predictions
+        })
+        
+        # Display the updated prediction results
+        st.subheader('Prediction Results Based on Selected Features')
+        st.write(submission.head())
 
-    # Allow the user to download the predictions
-    submission_file = 'submission.csv'
-    prediction_df.to_csv(submission_file, index=False)
+        # Save to CSV for Kaggle submission
+        submission_file = 'submission.csv'
+        submission.to_csv(submission_file, index=False)
 
-    # Provide a download link
-    st.subheader('Download Prediction Results')
-    st.download_button('Download CSV', submission_file)
+        # Provide a download link
+        st.subheader('Download Prediction Results')
+        st.download_button('Download CSV', submission_file)
